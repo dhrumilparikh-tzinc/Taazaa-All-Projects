@@ -8,9 +8,6 @@ Four projects built during my AI engineering internship, in the order they were 
 
 ## The Story
 
-> Sales teams at Taazaa generate thousands of unsearchable files daily — call recordings, contracts, business cards, slide decks. The goal: build a system that lets anyone query all of it in natural language and get a cited answer.
-
-The path to that system:
 
 ```
 Basic RAG          →  LLM Fine-Tuning      →  Wandr Travel Planner   →  Multimodal RAG Evaluation
