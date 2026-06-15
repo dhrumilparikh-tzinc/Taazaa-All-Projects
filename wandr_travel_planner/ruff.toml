@@ -1,0 +1,4 @@
+[lint]
+# E402: module-level imports not at top — intentionally used after load_dotenv()
+# in app.py and web/server.py so env vars are set before src.* imports.
+per-file-ignores = { "app.py" = ["E402"], "web/server.py" = ["E402"] }

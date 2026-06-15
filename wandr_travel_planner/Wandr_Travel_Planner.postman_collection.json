@@ -1,0 +1,226 @@
+{
+  "info": {
+    "_postman_id": "wandr-travel-planner-v2",
+    "name": "Wandr AI Travel Planner",
+    "description": "Single-endpoint API. Send a plain-English travel query, get a complete trip plan back.\n\nOne request. No polling. No session IDs.\n\nStart the server first:\n  uvicorn web.server:app --reload\n\nThen hit POST /api/trip.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "Change this if the server is running elsewhere (ngrok URL, deployed URL, etc.)"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Verify the server is running before sending a trip request."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "originalRequest": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/health" }
+          },
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"status\": \"ok\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Plan a Trip",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const body = pm.response.json();",
+              "    pm.test('trip_id present',        () => pm.expect(body.trip_id).to.be.a('string'));",
+              "    pm.test('destination_city present', () => pm.expect(body.destination_city).to.be.a('string'));",
+              "    pm.test('itinerary present',       () => pm.expect(body.itinerary).to.be.an('object'));",
+              "    pm.test('weather_data present',    () => pm.expect(body.weather_data).to.be.an('object'));",
+              "    pm.test('budget_breakdown present',() => pm.expect(body.budget_breakdown).to.be.an('object'));",
+              "    pm.test('packing_list present',    () => pm.expect(body.packing_list).to.be.an('object'));",
+              "    console.log('Trip planned for:', body.destination_city, body.destination_country);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Plan a 7-day trip to Tokyo, Japan in April with a budget of $3000 USD. I love street food, temples, and anime culture.\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/trip",
+          "host": ["{{base_url}}"],
+          "path": ["api", "trip"]
+        },
+        "description": "Send a plain-English travel query. All 5 agents run in sequence:\n  1. Destination — country facts + travel overview\n  2. Weather     — 7-day forecast for your travel dates\n  3. Budget      — FX conversion + daily category breakdown\n  4. Itinerary   — day-by-day plan with timings and tips\n  5. Packing     — weather-aware packing list\n\nThe response is returned once all agents have completed (typically 30–90 seconds).\n\nFields in the request body:\n  query (required) — any natural-language travel request"
+      },
+      "response": [
+        {
+          "name": "200 — Complete Trip Plan",
+          "status": "OK",
+          "code": 200,
+          "originalRequest": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Plan a 7-day trip to Tokyo, Japan in April with a budget of $3000 USD. I love street food, temples, and anime culture.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/trip" }
+          },
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"trip_id\": \"f3a1b2c4-dead-beef-cafe-0123456789ab\",\n  \"query\": \"Plan a 7-day trip to Tokyo, Japan in April with a budget of $3000 USD. I love street food, temples, and anime culture.\",\n  \"destination_city\": \"Tokyo\",\n  \"destination_country\": \"Japan\",\n  \"trip_duration_days\": 7,\n  \"budget_amount\": 3000.0,\n  \"budget_currency\": \"USD\",\n  \"interests\": [\"street food\", \"temples\", \"anime culture\"],\n  \"travel_month\": \"April\",\n\n  \"destination_info\": {\n    \"common_name\": \"Japan\",\n    \"official_name\": \"Japan\",\n    \"capital\": \"Tokyo\",\n    \"region\": \"Asia\",\n    \"subregion\": \"Eastern Asia\",\n    \"population\": 125700000,\n    \"currencies\": { \"JPY\": { \"name\": \"Japanese yen\", \"symbol\": \"¥\" } },\n    \"languages\": { \"jpn\": \"Japanese\" },\n    \"overview_paragraph_1\": \"Tokyo is a dazzling collision of ancient tradition and hyper-modern innovation, where centuries-old temples stand in the shadows of neon-lit skyscrapers.\",\n    \"overview_paragraph_2\": \"From the lantern-lit alleys of Asakusa to the electric chaos of Akihabara, every neighbourhood offers a completely different world to explore.\"\n  },\n\n  \"weather_data\": {\n    \"city\": \"Tokyo\",\n    \"country\": \"Japan\",\n    \"latitude\": 35.6762,\n    \"longitude\": 139.6503,\n    \"timezone\": \"Asia/Tokyo\",\n    \"daily_forecast\": [\n      { \"date\": \"2026-04-01\", \"temp_max_c\": 18, \"temp_min_c\": 11, \"precipitation_mm\": 2.1, \"wind_max_kmh\": 14 },\n      { \"date\": \"2026-04-02\", \"temp_max_c\": 20, \"temp_min_c\": 12, \"precipitation_mm\": 0.0, \"wind_max_kmh\": 10 },\n      { \"date\": \"2026-04-03\", \"temp_max_c\": 19, \"temp_min_c\": 11, \"precipitation_mm\": 5.4, \"wind_max_kmh\": 18 },\n      { \"date\": \"2026-04-04\", \"temp_max_c\": 17, \"temp_min_c\": 10, \"precipitation_mm\": 0.0, \"wind_max_kmh\": 12 },\n      { \"date\": \"2026-04-05\", \"temp_max_c\": 21, \"temp_min_c\": 13, \"precipitation_mm\": 0.0, \"wind_max_kmh\": 8  },\n      { \"date\": \"2026-04-06\", \"temp_max_c\": 22, \"temp_min_c\": 14, \"precipitation_mm\": 0.0, \"wind_max_kmh\": 9  },\n      { \"date\": \"2026-04-07\", \"temp_max_c\": 16, \"temp_min_c\": 10, \"precipitation_mm\": 8.0, \"wind_max_kmh\": 22 }\n    ]\n  },\n\n  \"budget_breakdown\": {\n    \"total_budget_native\": 3000.0,\n    \"total_budget_native_currency\": \"USD\",\n    \"total_budget_local\": 448500.0,\n    \"total_budget_local_currency\": \"JPY\",\n    \"exchange_rate_used\": 149.5,\n    \"duration_days\": 7,\n    \"daily_budget_local\": 64071.0,\n    \"categories\": [\n      { \"name\": \"accommodation\", \"daily_amount\": 20000, \"description\": \"Mid-range hotel in Shinjuku or Shibuya\" },\n      { \"name\": \"food\",          \"daily_amount\": 8000,  \"description\": \"Ramen, sushi conveyor belt, izakaya dinners\" },\n      { \"name\": \"transport\",     \"daily_amount\": 5000,  \"description\": \"IC card (metro) + one Shinkansen day trip\" },\n      { \"name\": \"activities\",    \"daily_amount\": 10000, \"description\": \"Museum entries, teamLab tickets, temple grounds\" },\n      { \"name\": \"buffer\",        \"daily_amount\": 7071,  \"description\": \"Shopping, omiyage gifts, unexpected splurges\" }\n    ],\n    \"notes\": \"Budget is comfortable for 7 days; cherry-blossom season may push accommodation prices up 20–30%.\"\n  },\n\n  \"itinerary\": {\n    \"destination\": \"Tokyo, Japan\",\n    \"summary\": \"A 7-day journey blending temple culture, anime districts, and world-class street food.\",\n    \"days\": [\n      {\n        \"day\": 1,\n        \"theme\": \"Ancient Tokyo: Asakusa & Ueno\",\n        \"highlights\": [\n          \"Morning prayers at Senso-ji before the crowds arrive\",\n          \"Cherry-blossom picnic in Ueno Park\",\n          \"Yakitori dinner under the Yamanote Line tracks at Yurakucho\"\n        ],\n        \"segments\": [\n          {\n            \"time\": \"7:00 AM – 9:30 AM\",\n            \"period\": \"early morning\",\n            \"activity\": \"Senso-ji Temple visit\",\n            \"location\": \"Senso-ji Temple, Asakusa\",\n            \"description\": \"Arrive early before tour groups. The Kaminarimon gate glows orange in the morning light. Walk the Nakamise shopping street for fresh ningyo-yaki.\",\n            \"tips\": \"Draw an omikuji fortune slip for ¥100 at the main hall.\",\n            \"cost_note\": \"Free\"\n          },\n          {\n            \"time\": \"10:00 AM – 1:00 PM\",\n            \"period\": \"morning\",\n            \"activity\": \"Ueno Park cherry blossoms\",\n            \"location\": \"Ueno Park, Taito\",\n            \"description\": \"Stroll the central promenade lined with 1,000+ cherry trees in full bloom. Visit the Tokyo National Museum for samurai armour and ukiyo-e prints.\",\n            \"tips\": \"Grab a convenience store bento for a hanami picnic on the grass.\",\n            \"cost_note\": \"Park free; museum ¥1,000\"\n          }\n        ],\n        \"transport_note\": \"Ginza Line: Asakusa → Ueno (2 stops, ¥180). Walk everywhere within Ueno Park.\"\n      }\n    ]\n  },\n\n  \"packing_list\": {\n    \"destination\": \"Tokyo, Japan\",\n    \"duration_days\": 7,\n    \"weather_summary\": \"Mild April weather, 10–22°C, occasional light rain, cherry-blossom season.\",\n    \"categories\": [\n      {\n        \"category\": \"clothing\",\n        \"items\": [\"Light jacket\", \"Layering sweaters for cool mornings\", \"Comfortable walking shoes\", \"One smart-casual outfit (for nicer restaurants)\", \"Compact rain jacket or poncho\"]\n      },\n      {\n        \"category\": \"documents\",\n        \"items\": [\"Passport\", \"Travel insurance certificate\", \"Hotel confirmations (printed or offline)\", \"Suica/Pasmo IC card (or get at airport)\"]\n      },\n      {\n        \"category\": \"electronics\",\n        \"items\": [\"Universal adapter (Japan uses Type A, same as US)\", \"Pocket Wi-Fi or local SIM card\", \"Power bank (trains have no outlets)\"]\n      },\n      {\n        \"category\": \"toiletries\",\n        \"items\": [\"Sunscreen SPF 30+\", \"Allergy tablets (high pollen in spring)\", \"Blister plasters for walking days\"]\n      },\n      {\n        \"category\": \"gear\",\n        \"items\": [\"Compact umbrella\", \"Reusable tote bag (for market shopping)\", \"Small day pack\", \"Cash (¥50,000 minimum — many places are cash-only)\"]\n      }\n    ]\n  }\n}"
+        },
+        {
+          "name": "403 — Not a travel query",
+          "status": "Forbidden",
+          "code": 403,
+          "originalRequest": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Write me a Python web scraper.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/trip" }
+          },
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"detail\": {\n    \"message\": \"I can only help you plan travel. Please describe a trip you'd like to take.\",\n    \"reason\": \"Query is a code request, not a travel-planning request.\"\n  }\n}"
+        },
+        {
+          "name": "500 — Agent error",
+          "status": "Internal Server Error",
+          "code": 500,
+          "originalRequest": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/api/trip" }
+          },
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"detail\": \"Planning failed: <error message from the failing agent>\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Example Queries",
+      "item": [
+        {
+          "name": "Budget Backpacker — Vietnam",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"14-day backpacking trip through Vietnam in September, total budget $1200 USD. I like street food, motorbike adventures, and UNESCO heritage sites.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trip",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trip"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Luxury City Break — Paris",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"5-day luxury trip to Paris in December, budget €6000. I want fine dining, fashion boutiques, and museum visits.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trip",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trip"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Adventure — New Zealand",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"3 weeks in New Zealand in February, NZD 5000. Into bungee jumping, Lord of the Rings filming locations, and glacier hiking.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trip",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trip"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Family Holiday — Singapore",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Family trip to Singapore for 6 days in March, SGD 8000. Kids love Universal Studios, night safari, and hawker centre food.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trip",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trip"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Rejected — Not a travel query",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What is the capital of France?\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trip",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trip"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

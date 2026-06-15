@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*/__pycache__/
+*.pyc
+
+# ── Large binary index files (121 MB — rebuild with scripts/build_index.py) ──
+faiss_index/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/

@@ -1,0 +1,28 @@
+{
+  "run_date": "2026-06-12",
+  "model": "gemini-2.5-flash",
+  "embedding_model": "gemini-embedding-exp-03-07",
+  "pipeline": "query expansion + multi-variant search + Gemini reranking",
+  "n_questions": 12,
+  "averages": {
+    "faithfulness": 0.9306,
+    "answer_relevancy": 0.9246,
+    "context_precision": 0.823,
+    "context_recall": 0.9306,
+    "answer_correctness": 0.6964
+  },
+  "results": [
+    {"question": "What is the expansion revenue target for N...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.918, "context_precision": 0.917, "context_recall": 1.000, "answer_correctness": 0.793}},
+    {"question": "What is the deal value and pipeline stage (1)...", "scores": {"faithfulness": 0.667, "answer_relevancy": 0.980, "context_precision": 0.976, "context_recall": 1.000, "answer_correctness": 0.789}},
+    {"question": "What is Jessica Park's email address, her ...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.993, "context_precision": 0.810, "context_recall": 1.000, "answer_correctness": 0.977}},
+    {"question": "What is the deal value and pipeline stage (2)...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.982, "context_precision": 1.000, "context_recall": 1.000, "answer_correctness": 0.827}},
+    {"question": "What products is Acme Corporation being on...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.903, "context_precision": 0.625, "context_recall": 1.000, "answer_correctness": 0.789}},
+    {"question": "What products is Titan Logistics Group bei...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.861, "context_precision": 0.933, "context_recall": 0.500, "answer_correctness": 0.789}},
+    {"question": "What is the Greenfield Energy Partners com...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.925, "context_precision": 0.000, "context_recall": 0.667, "answer_correctness": 0.380}},
+    {"question": "What is the deal value and pipeline stage (3)...", "scores": {"faithfulness": 0.667, "answer_relevancy": 0.927, "context_precision": 0.927, "context_recall": 1.000, "answer_correctness": 0.718}},
+    {"question": "What are Sterling Capital Bank's Q2 2026 b...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.966, "context_precision": 1.000, "context_recall": 1.000, "answer_correctness": 0.724}},
+    {"question": "Who is billed on MasterCRM's invoice to Ac...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.917, "context_precision": 1.000, "context_recall": 1.000, "answer_correctness": 0.722}},
+    {"question": "Which competitor is Greenfield Energy Part...", "scores": {"faithfulness": 0.833, "answer_relevancy": 0.875, "context_precision": 0.942, "context_recall": 1.000, "answer_correctness": 0.429}},
+    {"question": "What is the deal value and pipeline stage (4)...", "scores": {"faithfulness": 1.000, "answer_relevancy": 0.848, "context_precision": 0.747, "context_recall": 1.000, "answer_correctness": 0.419}}
+  ]
+}

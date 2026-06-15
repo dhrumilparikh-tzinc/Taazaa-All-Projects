@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Planning your trip{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-16">
+  <div class="w-full max-w-md">
+
+    <div class="text-center mb-12">
+      <div class="font-serif text-4xl font-bold text-primary mb-2">Planning<em class="italic font-normal"> your trip</em></div>
+      <p class="text-on-variant text-sm" id="status-line">Starting up&#8230;</p>
+    </div>
+
+    <!-- Step list -->
+    <ul class="space-y-4" id="step-list">
+      <li data-agent="destination" class="step-row flex items-center gap-4">
+        <div class="step-indicator relative w-9 h-9 flex-shrink-0">
+          <div class="pending-icon w-9 h-9 rounded-full border-2 border-divider flex items-center justify-center">
+            <span class="w-2 h-2 rounded-full bg-divider"></span>
+          </div>
+          <div class="running-icon hidden">
+            <div class="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-ring"></div>
+            <div class="w-9 h-9 rounded-full border-2 border-primary flex items-center justify-center">
+              <div class="w-2 h-2 rounded-full bg-primary animate-ping"></div>
+            </div>
+          </div>
+          <div class="done-icon hidden w-9 h-9 rounded-full bg-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-white" style="font-size:18px">check</span>
+          </div>
+          <div class="error-icon hidden w-9 h-9 rounded-full bg-error/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-error" style="font-size:18px">warning</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-sm text-on-surface">Destination &amp; Overview</div>
+          <div class="step-summary text-xs text-on-variant mt-0.5"></div>
+        </div>
+      </li>
+
+      <li data-agent="weather" class="step-row flex items-center gap-4">
+        <div class="step-indicator relative w-9 h-9 flex-shrink-0">
+          <div class="pending-icon w-9 h-9 rounded-full border-2 border-divider flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-divider"></span></div>
+          <div class="running-icon hidden"><div class="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-ring"></div><div class="w-9 h-9 rounded-full border-2 border-primary flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-primary animate-ping"></div></div></div>
+          <div class="done-icon hidden w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-white" style="font-size:18px">check</span></div>
+          <div class="error-icon hidden w-9 h-9 rounded-full bg-error/20 flex items-center justify-center"><span class="material-symbols-outlined text-error" style="font-size:18px">warning</span></div>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-sm text-on-surface">Weather Forecast</div>
+          <div class="step-summary text-xs text-on-variant mt-0.5"></div>
+        </div>
+      </li>
+
+      <li data-agent="budget" class="step-row flex items-center gap-4">
+        <div class="step-indicator relative w-9 h-9 flex-shrink-0">
+          <div class="pending-icon w-9 h-9 rounded-full border-2 border-divider flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-divider"></span></div>
+          <div class="running-icon hidden"><div class="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-ring"></div><div class="w-9 h-9 rounded-full border-2 border-primary flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-primary animate-ping"></div></div></div>
+          <div class="done-icon hidden w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-white" style="font-size:18px">check</span></div>
+          <div class="error-icon hidden w-9 h-9 rounded-full bg-error/20 flex items-center justify-center"><span class="material-symbols-outlined text-error" style="font-size:18px">warning</span></div>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-sm text-on-surface">Budget Breakdown</div>
+          <div class="step-summary text-xs text-on-variant mt-0.5"></div>
+        </div>
+      </li>
+
+      <li data-agent="itinerary" class="step-row flex items-center gap-4">
+        <div class="step-indicator relative w-9 h-9 flex-shrink-0">
+          <div class="pending-icon w-9 h-9 rounded-full border-2 border-divider flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-divider"></span></div>
+          <div class="running-icon hidden"><div class="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-ring"></div><div class="w-9 h-9 rounded-full border-2 border-primary flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-primary animate-ping"></div></div></div>
+          <div class="done-icon hidden w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-white" style="font-size:18px">check</span></div>
+          <div class="error-icon hidden w-9 h-9 rounded-full bg-error/20 flex items-center justify-center"><span class="material-symbols-outlined text-error" style="font-size:18px">warning</span></div>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-sm text-on-surface">Day-by-Day Itinerary</div>
+          <div class="step-summary text-xs text-on-variant mt-0.5"></div>
+        </div>
+      </li>
+
+      <li data-agent="packing" class="step-row flex items-center gap-4">
+        <div class="step-indicator relative w-9 h-9 flex-shrink-0">
+          <div class="pending-icon w-9 h-9 rounded-full border-2 border-divider flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-divider"></span></div>
+          <div class="running-icon hidden"><div class="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-ring"></div><div class="w-9 h-9 rounded-full border-2 border-primary flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-primary animate-ping"></div></div></div>
+          <div class="done-icon hidden w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-white" style="font-size:18px">check</span></div>
+          <div class="error-icon hidden w-9 h-9 rounded-full bg-error/20 flex items-center justify-center"><span class="material-symbols-outlined text-error" style="font-size:18px">warning</span></div>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-sm text-on-surface">Packing List</div>
+          <div class="step-summary text-xs text-on-variant mt-0.5"></div>
+        </div>
+      </li>
+    </ul>
+
+  </div>
+</div>
+
+<script>
+  // Pass the trip_id from the URL into the JS
+  const TRIP_ID = new URLSearchParams(window.location.search).get('id') || '';
+</script>
+<script src="/static/js/planning.js"></script>
+{% endblock %}

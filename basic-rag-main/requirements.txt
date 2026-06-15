@@ -1,0 +1,11 @@
+google-genai
+sentence-transformers
+faiss-cpu
+pandas
+numpy
+sqlalchemy
+psycopg2-binary
+kaggle
+python-dotenv
+fastapi
+uvicorn

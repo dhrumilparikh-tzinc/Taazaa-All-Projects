@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Your Trip Brief{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col">
+  <!-- Top nav -->
+  <nav class="px-8 py-4 border-b border-divider flex items-center justify-between bg-white sticky top-0 z-10">
+    <a href="/" class="font-serif text-xl font-bold text-primary">wandr</a>
+    <a href="/"
+       class="text-sm bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-lt transition-colors flex items-center gap-1">
+      <span class="material-symbols-outlined" style="font-size:16px">add</span>
+      New trip
+    </a>
+  </nav>
+
+  <!-- Main layout -->
+  <div class="flex flex-1 max-w-6xl mx-auto w-full px-4 md:px-8 py-10 gap-10">
+
+    <!-- Sidebar nav (desktop) -->
+    <aside class="hidden md:block w-44 flex-shrink-0">
+      <div class="sticky top-24 space-y-1">
+        <p class="text-xs text-on-variant uppercase tracking-wider font-medium mb-3">Sections</p>
+        <a href="#overview"   class="nav-link block text-sm py-1.5 px-3 rounded-lg hover:bg-surface-dk text-on-variant hover:text-primary transition-colors">Overview</a>
+        <a href="#weather"    class="nav-link block text-sm py-1.5 px-3 rounded-lg hover:bg-surface-dk text-on-variant hover:text-primary transition-colors">Weather</a>
+        <a href="#budget"     class="nav-link block text-sm py-1.5 px-3 rounded-lg hover:bg-surface-dk text-on-variant hover:text-primary transition-colors">Budget</a>
+        <a href="#itinerary"  class="nav-link block text-sm py-1.5 px-3 rounded-lg hover:bg-surface-dk text-on-variant hover:text-primary transition-colors">Itinerary</a>
+        <a href="#packing"    class="nav-link block text-sm py-1.5 px-3 rounded-lg hover:bg-surface-dk text-on-variant hover:text-primary transition-colors">Packing</a>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="flex-1 min-w-0 space-y-12" id="brief-content">
+
+      <!-- Loading state -->
+      <div id="loading" class="flex flex-col items-center justify-center py-24 gap-4">
+        <div class="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <p class="text-on-variant">Loading your trip brief&#8230;</p>
+      </div>
+
+      <!-- Sections — populated by brief.js -->
+      <section id="overview"  class="hidden"></section>
+      <section id="weather"   class="hidden"></section>
+      <section id="budget"    class="hidden"></section>
+      <section id="itinerary" class="hidden"></section>
+      <section id="packing"   class="hidden"></section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const TRIP_ID = '{{ trip_id }}';
+</script>
+<script src="/static/js/brief.js"></script>
+{% endblock %}

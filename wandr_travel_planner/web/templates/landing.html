@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Plan your trip{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col">
+
+  <!-- Nav bar -->
+  <nav class="px-8 py-5 flex items-center justify-between">
+    <span class="font-serif text-2xl font-bold text-primary tracking-tight">wandr</span>
+    <span class="text-sm text-on-variant font-light">AI Travel Planner</span>
+  </nav>
+
+  <!-- Hero -->
+  <main class="flex-1 flex flex-col items-center justify-center px-4 text-center pb-24">
+    <p class="text-on-variant text-sm uppercase tracking-widest mb-4 font-medium">
+      Your trip, planned completely
+    </p>
+    <h1 class="font-serif text-5xl md:text-7xl font-bold text-primary leading-tight mb-6 max-w-3xl">
+      Where would you<br><em class="italic font-normal">like to go?</em>
+    </h1>
+    <p class="text-on-variant max-w-md mb-12 text-base leading-relaxed">
+      Tell us in plain English — city, duration, budget, what you love.
+      We'll handle the rest.
+    </p>
+
+    <!-- Input area -->
+    <div id="input-area" class="w-full max-w-xl">
+      <div class="relative">
+        <textarea
+          id="query-input"
+          rows="3"
+          placeholder="Plan a 5-day trip to Tokyo in October, &#165;80,000 budget, I like temples and street food"
+          class="w-full resize-none rounded-2xl border border-divider bg-white px-5 py-4 pr-14
+                 text-on-surface placeholder-on-variant/50 text-base leading-relaxed
+                 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary
+                 shadow-sm transition-all"
+        ></textarea>
+        <button
+          id="plan-btn"
+          class="absolute bottom-4 right-4 bg-primary hover:bg-primary-lt text-white
+                 rounded-xl px-4 py-2 text-sm font-medium transition-colors flex items-center gap-1"
+        >
+          <span class="material-symbols-outlined text-sm" style="font-size:16px">flight_takeoff</span>
+          Plan
+        </button>
+      </div>
+
+      <!-- Error message (hidden by default) -->
+      <div id="error-msg" class="hidden mt-3 text-sm text-error bg-error/10 rounded-xl px-4 py-3"></div>
+
+      <!-- Loading state (hidden by default) -->
+      <div id="loading" class="hidden mt-6 flex flex-col items-center gap-3">
+        <div class="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <p class="text-on-variant text-sm">Analysing your request&#8230;</p>
+      </div>
+    </div>
+
+    <!-- Example queries -->
+    <div class="mt-8 flex flex-wrap gap-2 justify-center max-w-xl">
+      <span class="text-xs text-on-variant/60 w-full mb-1">Try:</span>
+      <button onclick="fillExample(this)" class="example-chip text-xs bg-surface-dk hover:bg-divider text-on-variant rounded-full px-3 py-1.5 transition-colors">Weekend in Paris, &#8364;400, museums</button>
+      <button onclick="fillExample(this)" class="example-chip text-xs bg-surface-dk hover:bg-divider text-on-variant rounded-full px-3 py-1.5 transition-colors">7 days Reykjavik, $3000, hiking</button>
+      <button onclick="fillExample(this)" class="example-chip text-xs bg-surface-dk hover:bg-divider text-on-variant rounded-full px-3 py-1.5 transition-colors">10 days Bali, $2000, beaches and temples</button>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-xs text-on-variant/40 pb-6">
+    Powered by Gemini 2.5 Flash &middot; LangGraph
+  </footer>
+</div>
+
+<script src="/static/js/landing.js"></script>
+{% endblock %}

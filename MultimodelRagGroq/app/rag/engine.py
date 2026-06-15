@@ -1,0 +1,274 @@
+"""
+Core RAG query engine.
+
+Public API
+----------
+query(question, job_ids, user_id, db, settings) -> dict
+    Full RAG pipeline: embed → hybrid search → confidence gate → Groq LLM →
+    save QueryHistory → enqueue async RAGAS evaluation.
+    Returns answer text, numbered citations, token counts, and latency.
+
+_resolve_chunks_and_context(question, job_ids, settings) -> dict
+    Shared retrieval step used by both query() and the /v1/query/stream
+    endpoint.  Returns either an early-return payload (no chunks / low
+    confidence) or the ranked chunk list and assembled user prompt.
+
+Hybrid Search Pipeline
+----------------------
+1. Embed question with fastembed (BAAI/bge-small-en-v1.5).
+2. Vector search in ChromaDB (cosine similarity, child chunks).
+3. BM25 sparse search on the same corpus (cached in Redis).
+4. Merge with Reciprocal Rank Fusion (k=60).
+5. Cross-encoder rerank (sentence-transformers).
+6. Confidence gate — if top vector score < CONFIDENCE_THRESHOLD, return
+   early without calling the LLM (prevents hallucination).
+7. Build numbered context block (parent chunk text, capped at 1200 chars).
+8. Call Groq (GROQ_MODEL) with RAG_SYSTEM_PROMPT.
+
+Broad-query detection (_BROAD_QUERY_RE) doubles effective_top_k for
+questions that span many documents (e.g. "compare all clients").
+"""
+
+import json
+import time
+from datetime import datetime
+
+import groq as groq_sdk
+from fastapi import HTTPException
+
+from app.observability.logging import get_logger, log_llm_call
+from app.rag.bm25_index import build_bm25, load_bm25, search_bm25
+from app.rag.embedder import embed_query
+from app.rag.reranker import rerank
+from app.rag.vectorstore import get_chroma_client, get_or_create_collection, rrf_merge, search
+
+log = get_logger()
+
+RAG_SYSTEM_PROMPT = """You are a document Q&A assistant. Answer STRICTLY from the numbered context excerpts provided below.
+
+ABSOLUTE RULES — violating any of these is wrong:
+1. ONLY use information explicitly present word-for-word in the excerpts. Never add, infer, or extrapolate anything.
+2. Every factual claim MUST have a [n] citation marker pointing to the specific excerpt it came from — no exceptions.
+3. Include every relevant fact that IS written in the excerpts (names, numbers, dates, stages, categories). Do NOT omit relevant facts, but also do NOT add facts that are not written.
+4. If the answer is NOT present in any excerpt, respond ONLY with: "The provided documents do not contain this information."
+5. Answer in complete sentences. Direct and factual — no preamble, no filler.
+"""
+
+
+import re as _re
+
+_BROAD_QUERY_RE = _re.compile(
+    r"\b(all|every|across|compare|list\s+all|summari[sz]e\s+all|each\s+client|"
+    r"all\s+\d+|all\s+accounts?|all\s+clients?|entire|overall|full\s+list|"
+    r"which\s+compan|which\s+account|which\s+client|most\s+common|"
+    r"how\s+many\s+compan|categories?\s+across)\b",
+    _re.IGNORECASE,
+)
+
+
+def _resolve_chunks_and_context(question: str, job_ids: list[str] | None, settings) -> dict:
+    """Embed question, search ChromaDB, run confidence gate, build prompt. Returns dict."""
+    # Broad cross-document queries ("compare all clients", "list all managers")
+    # need more chunks than single-entity lookups.
+    is_broad = bool(_BROAD_QUERY_RE.search(question))
+    effective_top_k = min(settings.RAG_TOP_K * 2, 20) if is_broad else settings.RAG_TOP_K
+
+    q_embedding = embed_query(question, settings)
+    client = get_chroma_client(settings)
+    collection = get_or_create_collection(client, settings)
+
+    # Hybrid search: vector + BM25 merged via Reciprocal Rank Fusion, then cross-encoder re-rank
+    vector_chunks = search(collection, q_embedding, top_k=effective_top_k * 2, job_ids=job_ids)
+
+    # Capture vector scores before rrf_merge mutates them in-place
+    top_vector_score = vector_chunks[0]["score"] if vector_chunks else 0.0
+    avg_vector_score = (
+        sum(c["score"] for c in vector_chunks) / len(vector_chunks) if vector_chunks else 0.0
+    )
+
+    index_data = load_bm25(settings) or build_bm25(collection, settings)
+    bm25_chunks = search_bm25(index_data, question, top_k=effective_top_k * 2, job_ids=job_ids)
+    rrf_chunks = rrf_merge(vector_chunks, bm25_chunks, top_k=effective_top_k * 2)
+    chunks = rerank(question, rrf_chunks, top_k=effective_top_k)
+
+    if not chunks:
+        if job_ids:
+            msg = "The selected document(s) have no searchable text content. Try selecting different documents or search across all documents."
+        else:
+            msg = "No documents found to search. Please upload and process files first."
+        return {
+            "early_return": True,
+            "payload": {
+                "answer": msg,
+                "citations": [],
+                "confidence_gate_passed": False,
+                "avg_similarity_score": 0.0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "latency_ms": 0,
+                "ragas_scores": None,
+            },
+        }
+
+    # Confidence gate uses top vector cosine similarity (0–1 scale), not raw RRF score.
+    if top_vector_score < settings.CONFIDENCE_THRESHOLD:
+        return {
+            "early_return": True,
+            "payload": {
+                "answer": "I couldn't find sufficiently relevant information in your documents to answer this question confidently.",
+                "citations": [],
+                "confidence_gate_passed": False,
+                "avg_similarity_score": top_vector_score,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "latency_ms": 0,
+                "ragas_scores": None,
+            },
+        }
+
+    # Parent chunks ≈ 600 words (~3600 chars) — cap at 1200 chars for 6-chunk token budget
+    _MAX_CHUNK_CHARS = 1200
+    context_parts = [
+        f"[{i}] Source: {c['filename']} ({c['page_or_segment']})\n{c['text'][:_MAX_CHUNK_CHARS]}"
+        for i, c in enumerate(chunks, 1)
+    ]
+    user_prompt = f"Context:\n{chr(10).join(context_parts)}\n\nQuestion: {question}\n\nAnswer (with [n] citation markers):"
+    return {
+        "early_return": False,
+        "chunks": chunks,
+        "avg_score": avg_vector_score,
+        "user_prompt": user_prompt,
+    }
+
+
+def query(
+    question: str,
+    job_ids: list[str] | None,
+    user_id,
+    db,
+    settings,
+) -> dict:
+    start_total = time.time()
+
+    resolved = _resolve_chunks_and_context(question, job_ids, settings)
+    if resolved["early_return"]:
+        payload = resolved["payload"]
+        payload["latency_ms"] = int((time.time() - start_total) * 1000)
+        log.info(
+            "rag_query_early_exit", question=question[:100], reason="no_chunks_or_low_confidence"
+        )
+        return payload
+
+    chunks = resolved["chunks"]
+    avg_score = resolved["avg_score"]
+    user_prompt = resolved["user_prompt"]
+
+    # Call LLM — routes to Groq or Gemini based on settings.LLM_PROVIDER
+    from app.llm_provider import call_query_llm
+
+    try:
+        answer_text, prompt_tokens, completion_tokens = call_query_llm(
+            messages=[
+                {"role": "system", "content": RAG_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            settings=settings,
+            max_tokens=800,
+            temperature=0,
+        )
+    except groq_sdk.RateLimitError as exc:
+        log.warning("rag_rate_limit", model=settings.GROQ_MODEL, error=str(exc)[:200])
+        raise HTTPException(
+            status_code=429,
+            detail="AI model rate limit reached. Please wait a few minutes and try again.",
+        )
+    except groq_sdk.APIStatusError as exc:
+        if exc.status_code == 413:
+            log.warning("rag_request_too_large", model=settings.GROQ_MODEL, error=str(exc)[:200])
+            raise HTTPException(
+                status_code=503,
+                detail="Query context too large for model. Try selecting fewer documents.",
+            )
+        log.error("rag_api_error", model=settings.GROQ_MODEL, error=str(exc)[:200])
+        raise HTTPException(status_code=502, detail="AI model error. Please try again.")
+    except Exception as exc:
+        msg = str(exc).lower()
+        if "429" in msg or "rate" in msg or "quota" in msg:
+            raise HTTPException(
+                status_code=429,
+                detail="AI model rate limit reached. Please wait a few minutes and try again.",
+            )
+        log.error("rag_api_error", error=str(exc)[:200])
+        raise HTTPException(status_code=502, detail="AI model error. Please try again.")
+    latency_ms = int((time.time() - start_total) * 1000)
+
+    # 7. Log usage
+    log_llm_call(
+        user_id=user_id,
+        endpoint="rag_query",
+        model=settings.GROQ_MODEL,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        latency_ms=latency_ms,
+        query_text=question[:500],
+        llm_response_preview=answer_text[:500],
+        db=db,
+    )
+
+    log.info(
+        "rag_query",
+        question=question[:100],
+        retrieved_chunk_count=len(chunks),
+        avg_similarity_score=round(avg_score, 4),
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        latency_ms=latency_ms,
+    )
+
+    # 8. Build citations list
+    citations = [
+        {
+            "index": i + 1,
+            "filename": c["filename"],
+            "page_or_segment": c["page_or_segment"],
+            "excerpt": c["text"][:200],
+        }
+        for i, c in enumerate(chunks)
+    ]
+
+    # 9. Save to QueryHistory
+    from app.models.db import QueryHistory
+
+    qh = QueryHistory(
+        user_id=user_id,
+        question=question,
+        answer=answer_text,
+        citations=json.dumps(citations),
+        job_ids_queried=json.dumps([str(j) for j in (job_ids or [])]),
+        chunk_count_retrieved=len(chunks),
+        avg_similarity_score=avg_score,
+        confidence_gate_passed=True,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        latency_ms=latency_ms,
+        created_at=datetime.utcnow(),
+    )
+    db.add(qh)
+    db.commit()
+    db.refresh(qh)
+
+    # 10. Enqueue async RAGAS evaluation (task_id dedup — second enqueue is ignored)
+    from app.workers.tasks import compute_ragas
+
+    compute_ragas.apply_async(args=[str(qh.id)], task_id=f"ragas-{qh.id}")
+
+    return {
+        "answer": answer_text,
+        "citations": citations,
+        "confidence_gate_passed": True,
+        "avg_similarity_score": avg_score,
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "latency_ms": latency_ms,
+        "ragas_scores": None,
+    }

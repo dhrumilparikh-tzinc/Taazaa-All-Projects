@@ -1,0 +1,13 @@
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-groq>=0.2.0
+httpx>=0.27.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+
+# Web layer (used in Phase 7-8 but pin now to avoid surprises)
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+jinja2>=3.1.0
+sse-starlette>=2.1.0

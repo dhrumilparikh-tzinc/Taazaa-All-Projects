@@ -1,0 +1,151 @@
+{
+  "results": [
+    {
+      "question": "What is the total combined pipeline value mentioned in the sales pipeline review?",
+      "ground_truth": "The combined pipeline value across three enterprise accounts is $1,390,000.",
+      "answer": "$2,180,000 [1], $1,485,000 [2], $1,485,000 [3], $1,545,000 [4], $3,275,000 [5], $1,390,000 [6].",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.5797133468225201,
+        "context_precision": 0.9666666666473333,
+        "context_recall": 1.0,
+        "answer_correctness": 0.33626316675809964
+      }
+    },
+    {
+      "question": "Which accounts are in late-stage negotiation and what is their expected close timeline?",
+      "ground_truth": "Two accounts are in late-stage negotiation with expected close in Q2 2026, facing competitive pressure from incumbent vendors.",
+      "answer": "Acme Corporation and Sterling Capital Bank are in late-stage negotiation [1][2][3][4]. Their expected close timeline is Q2 2026 [1][2][3][4].",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6491133181511536,
+        "context_precision": 0.9999999999833333,
+        "context_recall": 1.0,
+        "answer_correctness": 0.6893804963600315
+      }
+    },
+    {
+      "question": "What CRM modules is Sterling Capital Bank being onboarded with?",
+      "ground_truth": "Sterling Capital Bank is being onboarded with CRM Enterprise, Compliance Module, and AI Analytics.",
+      "answer": "Sterling Capital Bank is being onboarded with CRM Enterprise, Compliance Module, and AI Analytics [1][2].",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8596438625591889,
+        "context_precision": 0.81666666664625,
+        "context_recall": 1.0,
+        "answer_correctness": 0.9960954861814477
+      }
+    },
+    {
+      "question": "What products is BlueSky Retail Group being onboarded with?",
+      "ground_truth": "BlueSky Retail Group is being onboarded with CRM Pro and Customer Journey Analytics.",
+      "answer": "CRM Pro, Customer Journey Analytics [1][2][3].",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.4904341491217745,
+        "context_precision": 0.9999999999666667,
+        "context_recall": 1.0,
+        "answer_correctness": 0.9499908685485889
+      }
+    },
+    {
+      "question": "Which companies have raised support tickets and what are the most common issue categories?",
+      "ground_truth": "Companies with support tickets include Sterling Capital Bank, Acme Corporation, Atlas Construction & Engineering, Greenfield Energy Partners, and Titan Logistics Group. The most common categories are migration, integration, and training.",
+      "answer": "Acme Corporation has raised support tickets [1]. The most common issue categories are Performance and Access [1].",
+      "scores": {
+        "faithfulness": 0.25,
+        "answer_relevancy": 0.7356513774879955,
+        "context_precision": 0.0,
+        "context_recall": 1.0,
+        "answer_correctness": 0.32039771147544216
+      }
+    },
+    {
+      "question": "What are the Q3 2026 goals or priorities discussed in the quarterly business review?",
+      "ground_truth": "The quarterly business review covers performance by Pinnacle Education Group and Meridian Technology Solutions, highlighting progress, open issues, and Q3 2026 goals.",
+      "answer": "The Q3 2026 goals are: Expand to Fleet Analytics module, Complete admin training programme, Reduce carrier performance by 40%, Achieve 90%+ seat utilization [1], or alternatively: Expand to Project Pipeline Tracker module, Complete admin training programme, Reduce regulatory filings by 40%, Achieve 90%+ seat utilization [4].",
+      "scores": {
+        "faithfulness": 0.5,
+        "answer_relevancy": 0.8945647498681188,
+        "context_precision": 0.249999999975,
+        "context_recall": 0.0,
+        "answer_correctness": 0.3840451632610592
+      }
+    },
+    {
+      "question": "What companies and revenue figures appear in the 2026 revenue forecasts?",
+      "ground_truth": "Revenue forecasts for 2026 include BlueSky Retail Group ($2,528,518), Nova Health Systems ($1,924,768), and Nexus Pharmaceuticals. These figures represent FY 2026 total revenue projections.",
+      "answer": "Nexus Pharmaceuticals [1], BlueSky Retail Group [1], Pinnacle Education Group [1], Nova Health Systems [2], Titan Logistics Group [3], Atlas Construction & Engineering [3], Meridian Technology Solutions [4], Acme Corporation [4], Sterling Capital Bank [6], with revenue figures such as $2,474,531 [1], $1,482,811 [1], $2,208,283 [1], $618,297 [2], $2,249,069 [3], $1,647,349 [3], $2,082,747 [4], $660,192 [4], $2,101,576 [6] [1][2][3][4][6].",
+      "scores": {
+        "answer_relevancy": 0.7119332218930343,
+        "context_precision": 0.99999999995,
+        "context_recall": 0.5,
+        "answer_correctness": 0.4565669129614981
+      }
+    },
+    {
+      "question": "Who is Jessica Park and what is her contact information?",
+      "ground_truth": "Jessica Park is a contact at BlueSky Retail Group. Her email is j.park@blueskyretail.com and her phone number is +1-206-555-0617.",
+      "answer": "Jessica Park is the Chief Customer Officer [1][2][3] and her contact information is: Phone: +1-206-555-0617 [1][2][3].",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6077015523119919,
+        "context_precision": 0.9999999999666667,
+        "context_recall": 0.6666666666666666,
+        "answer_correctness": 0.6426196580292806
+      }
+    },
+    {
+      "question": "What is the integration document about for Titan Logistics Group?",
+      "ground_truth": "The document is a technical design document for MasterCRM CRM Enterprise integration with Titan Logistics Group systems.",
+      "answer": "The integration document for Titan Logistics Group covers CRM Enterprise, Route Intelligence, Fleet Analytics [1][2].",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9871487501464523,
+        "context_precision": 0.99999999995,
+        "context_recall": 1.0,
+        "answer_correctness": 0.4617341642338023
+      }
+    },
+    {
+      "question": "What invoice services does MasterCRM Inc. provide to Acme Corporation?",
+      "ground_truth": "MasterCRM Inc. provides CRM-related services to Acme Corporation as shown in an invoice document.",
+      "answer": "The provided documents do not contain this information.",
+      "scores": {
+        "faithfulness": 0.0,
+        "answer_relevancy": 0.47463799030417947,
+        "context_precision": 0.4166666666458333,
+        "context_recall": 1.0,
+        "answer_correctness": 0.37016567056108046
+      }
+    },
+    {
+      "question": "What deals does BlueSky Retail Group have and what is its deal value?",
+      "ground_truth": "BlueSky Retail Group has an active opportunity in the Discovery stage with a value of $560,000 and expected close by June 22, 2026.",
+      "answer": "BlueSky Retail Group has a deal with a value of $560,000 [1][2][3][4][5].",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9475495683108996,
+        "context_precision": 0.6388888888675925,
+        "context_recall": 1.0,
+        "answer_correctness": 0.5860114117836321
+      }
+    },
+    {
+      "question": "What are the most common support ticket categories across all companies?",
+      "ground_truth": "The most common support ticket categories are migration, integration, and training, with migration being the most prevalent.",
+      "answer": "The provided documents do not contain this information.",
+      "scores": {
+        "answer_relevancy": 0.45250577747146503,
+        "answer_correctness": 0.3117418236898085
+      }
+    }
+  ],
+  "averages": {
+    "faithfulness": 0.775,
+    "answer_relevancy": 0.6992,
+    "context_precision": 0.7354,
+    "context_recall": 0.8333,
+    "answer_correctness": 0.5421
+  }
+}

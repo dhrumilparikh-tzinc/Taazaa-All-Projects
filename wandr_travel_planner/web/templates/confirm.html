@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Confirm your trip{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col">
+  <nav class="px-8 py-5 flex items-center justify-between">
+    <a href="/" class="font-serif text-2xl font-bold text-primary tracking-tight">wandr</a>
+    <a href="/" class="text-sm text-on-variant hover:text-primary transition-colors flex items-center gap-1">
+      <span class="material-symbols-outlined text-sm" style="font-size:16px">arrow_back</span>
+      Back
+    </a>
+  </nav>
+
+  <main class="flex-1 flex flex-col items-center px-4 py-8 md:py-16">
+    <div class="w-full max-w-lg">
+      <p class="text-on-variant text-sm uppercase tracking-widest mb-2 font-medium">Step 1 of 2</p>
+      <h1 class="font-serif text-4xl font-bold text-primary mb-2">Confirm your trip</h1>
+      <p class="text-on-variant mb-8">We've extracted these details &mdash; edit anything before we start planning.</p>
+
+      <div class="space-y-4">
+
+        <!-- Destination -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-on-variant mb-1">City</label>
+            <input id="city" type="text"
+              class="w-full rounded-xl border border-divider bg-white px-4 py-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-on-variant mb-1">Country</label>
+            <input id="country" type="text"
+              class="w-full rounded-xl border border-divider bg-white px-4 py-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary">
+          </div>
+        </div>
+
+        <!-- Duration & Month -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-on-variant mb-1">Duration (days)</label>
+            <input id="days" type="number" min="1" max="60"
+              class="w-full rounded-xl border border-divider bg-white px-4 py-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-on-variant mb-1">Month of travel</label>
+            <input id="month" type="text" placeholder="e.g. October"
+              class="w-full rounded-xl border border-divider bg-white px-4 py-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary">
+          </div>
+        </div>
+
+        <!-- Budget -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-on-variant mb-1">Budget</label>
+            <input id="budget" type="number" min="0"
+              class="w-full rounded-xl border border-divider bg-white px-4 py-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-on-variant mb-1">Currency</label>
+            <input id="currency" type="text" placeholder="USD"
+              class="w-full rounded-xl border border-divider bg-white px-4 py-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary">
+          </div>
+        </div>
+
+        <!-- Interests -->
+        <div>
+          <label class="block text-xs font-medium text-on-variant mb-1">
+            Interests (comma-separated)
+          </label>
+          <input id="interests" type="text" placeholder="temples, food, photography"
+            class="w-full rounded-xl border border-divider bg-white px-4 py-3 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary">
+        </div>
+
+        <!-- Error -->
+        <div id="error-msg" class="hidden text-sm text-error bg-error/10 rounded-xl px-4 py-3"></div>
+
+        <!-- CTA -->
+        <button id="start-btn"
+          class="w-full bg-cta-teal hover:opacity-90 text-white font-semibold
+                 py-4 rounded-2xl flex items-center justify-center gap-2
+                 text-base transition-opacity mt-2">
+          <span class="material-symbols-outlined" style="font-size:20px">travel_explore</span>
+          Start planning
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/js/confirm.js"></script>
+{% endblock %}

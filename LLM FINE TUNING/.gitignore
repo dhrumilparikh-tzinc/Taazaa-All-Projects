@@ -1,0 +1,31 @@
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+
+# ── Virtual environments ─────────────────────────────────────
+.venv/
+venv/
+
+# ── Environment / secrets ────────────────────────────────────
+.env
+!.env.example
+
+# ── Jupyter checkpoints ──────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── ML output artefacts (large binaries generated at run time) ──
+*.bin
+*.safetensors
+lora_adapter_mistral_dolly.zip
+evaluation_results.json
+training_curves.png
+metrics_comparison.png
+improvement_chart.png
+response_lengths.png
+
+# ── OS / editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
