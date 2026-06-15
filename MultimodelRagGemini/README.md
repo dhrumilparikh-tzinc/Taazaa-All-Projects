@@ -1,18 +1,29 @@
-# GeminiRAG — Multimodal Document Intelligence
+# Multimodal RAG — Gemini Stack (Method 2)
 
-A production-ready document Q&A platform powered entirely by **Google Gemini**. Upload any file — PDF, Word doc, spreadsheet, image, audio, or video — and ask questions about it in natural language. Answers are cited back to the exact source chunks.
-
-This was the **first production-scale RAG project** of the internship, built to handle real-world document variety with enterprise-grade infrastructure (async job queue, user auth, RAGAS quality metrics, React dashboard).
+> **This is one half of a comparative study.** Two complete multimodal RAG pipelines were built from scratch and evaluated head-to-head using RAGAS to give a grounded production recommendation for Taazaa's internal document search problem. This repo is **Method 2 — the Gemini Stack**. Method 1 (Free Stack) is in [`MultimodelRagGroq/`](../MultimodelRagGroq/).
 
 ---
 
-## Architecture
+## The Problem
+
+Sales teams at Taazaa generate thousands of unsearchable files daily — call recordings, contracts, business cards, slide decks. The goal: let anyone query all of it in natural language and get a cited answer.
+
+**The question: which AI stack should power it?**
+
+---
+
+## This Approach — Gemini Stack
+
+All file types go into the **Gemini File API** natively. Gemini handles extraction, embedding, reranking, and generation — the whole pipeline is 2 AI components.
+
+**Cost:** ~$0.002/query  
+**Components:** 2 AI (Gemini File API + Gemini 2.5 Flash)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        UPLOAD FLOW                          │
 │                                                             │
-│  File Upload ──► Celery Task ──► Processor                  │
+│  File Upload ──► Celery Task ──► Gemini File API            │
 │                                  │                          │
 │                    ┌─────────────┴──────────────┐           │
 │                    │  PDF / DOCX / XLSX          │           │
@@ -21,10 +32,9 @@ This was the **first production-scale RAG project** of the internship, built to 
 │                    │  Video (frames + audio)     │           │
 │                    └─────────────┬──────────────┘           │
 │                                  ▼                          │
-│                     Hierarchical Chunker                    │
-│                     (600-word parent / 150-word child)      │
+│               Hierarchical Chunker (600w parent / 150w child)│
 │                                  ▼                          │
-│                     Gemini Embeddings (768-dim)             │
+│               Gemini Embedding-2 (3072-dim)                 │
 │                                  ▼                          │
 │                           ChromaDB                          │
 └─────────────────────────────────────────────────────────────┘
@@ -32,17 +42,34 @@ This was the **first production-scale RAG project** of the internship, built to 
 ┌─────────────────────────────────────────────────────────────┐
 │                        QUERY FLOW                           │
 │                                                             │
-│  Question ──► Embed ──► ChromaDB search                     │
-│                              ▼                              │
-│                     Gemini reranker + RRF                   │
-│                              ▼                              │
-│                     Confidence gate (≥ 0.35)                │
-│                              ▼                              │
-│               Gemini 2.5 Flash ──► Cited answer             │
-│                              ▼                              │
-│                     Async RAGAS evaluation                  │
+│  Question ──► Query expansion (4 rephrasings)               │
+│                    ▼                                        │
+│              ChromaDB search + entity boosting              │
+│                    ▼                                        │
+│              Gemini reranker + RRF                          │
+│                    ▼                                        │
+│              Confidence gate (cosine ≥ 0.35)                │
+│                    ▼                                        │
+│              Gemini 2.5 Flash ──► Cited answer              │
+│                    ▼                                        │
+│              Async RAGAS evaluation (Celery)                │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## RAGAS Results vs Free Stack
+
+Evaluated on 12 questions. Full results in the [main README](../README.md).
+
+| Metric | This (Gemini) | Free Stack (Groq) |
+|---|---|---|
+| Faithfulness | **0.931** | 0.757 |
+| Context Recall | **0.931** | 0.698 |
+| Exact-phrase recall | Weaker | **Better** |
+| Speaker diarization | N/A | **Better** |
+
+**Gemini won 4/5 metrics. Recommendation: use Gemini ingestion with the Free Stack's BM25 + RRF retrieval logic.**
 
 ---
 
@@ -70,7 +97,6 @@ This was the **first production-scale RAG project** of the internship, built to 
 | Database | PostgreSQL (SQLModel ORM, Alembic migrations) |
 | Task Queue | Celery + Redis |
 | Auth | JWT (python-jose + bcrypt) |
-| Rate Limiting | slowapi |
 | Quality Metrics | RAGAS (faithfulness, relevancy, context precision/recall) |
 | Frontend | React 18 + Vite + Tailwind CSS |
 | Observability | structlog + OpenTelemetry |
@@ -86,26 +112,17 @@ MultimodelRagGemini/
 │   ├── main.py               # FastAPI factory + startup hooks
 │   ├── config.py             # Pydantic settings (P0 validation on startup)
 │   ├── llm_provider.py       # Gemini client with rate limiting
-│   ├── security.py           # JWT creation + password hashing
-│   ├── api/                  # Route handlers
-│   │   ├── auth.py           # Register + login
-│   │   ├── files.py          # File upload (500 MB limit)
-│   │   ├── jobs.py           # Job status polling
-│   │   ├── query.py          # RAG query + SSE streaming
-│   │   ├── documents.py      # Document listing + summaries
-│   │   ├── agent.py          # Multi-turn chat agent
-│   │   └── admin.py          # Usage analytics + RAGAS dashboard
+│   ├── api/                  # auth, files, jobs, query, documents, agent, admin
 │   ├── models/db.py          # User, Job, UsageLog, QueryHistory tables
-│   ├── processors/           # Per-format extraction (PDF, DOCX, XLSX, image, audio, video)
+│   ├── processors/           # PDF, DOCX, XLSX, image, audio, video
 │   ├── rag/                  # Embedder, chunker, vectorstore, reranker, engine
-│   ├── workers/              # Celery tasks (process_file, compute_ragas, cleanup)
-│   ├── evaluation/           # RAGAS metric computation
-│   └── observability/        # structlog + OpenTelemetry setup
+│   ├── workers/              # Celery: process_file, compute_ragas, cleanup
+│   └── evaluation/           # RAGAS metric computation
 ├── frontend/                 # React + TypeScript dashboard
 ├── alembic/                  # Database migrations
-├── scripts/                  # Seed admin, run RAGAS baseline, debug utilities
+├── scripts/                  # Seed admin, RAGAS baseline, utilities
 ├── tests/                    # pytest suite
-├── docker-compose.yml        # Full local stack
+├── docker-compose.yml
 └── Dockerfile
 ```
 
@@ -114,63 +131,33 @@ MultimodelRagGemini/
 ## Quick Start (Docker)
 
 ```bash
-# 1. Configure
 cp .env.example .env
-# Edit .env — fill in GEMINI_API_KEY and SECRET_KEY
+# Fill in GEMINI_API_KEY and SECRET_KEY
 
-# 2. Start all services
 docker compose up -d
 
-# 3. Create admin user
 docker compose exec api python scripts/seed_admin.py \
   --email admin@example.com --password YourPass!
-
-# 4. Open the dashboard
-open http://localhost:5173
 ```
 
-Services:
-- **API** → `http://localhost:8000`
-- **Frontend** → `http://localhost:5173`
-- **ChromaDB** → `http://localhost:8001`
-- **PostgreSQL** → port 5432
-- **Redis** → port 6379
+Open `http://localhost:5173`.
 
 ---
 
-## Manual Setup (without Docker)
+## Manual Setup
 
 ```bash
 pip install -e .
-cp .env.example .env   # Fill in GEMINI_API_KEY, DATABASE_URL, REDIS_URL, SECRET_KEY
+cp .env.example .env   # GEMINI_API_KEY, DATABASE_URL, REDIS_URL, SECRET_KEY
 
 createdb geminirag
 alembic upgrade head
 
-python scripts/start_chromadb.py       # Terminal 1 — ChromaDB on port 8001
-uvicorn app.main:app --reload --port 8000  # Terminal 2 — API
-celery -A app.workers.celery_app worker --loglevel=info --pool=solo  # Terminal 3 — Worker
-cd frontend && npm install && npm run dev  # Terminal 4 — Frontend
+python scripts/start_chromadb.py          # Terminal 1
+uvicorn app.main:app --reload --port 8000 # Terminal 2
+celery -A app.workers.celery_app worker --loglevel=info --pool=solo  # Terminal 3
+cd frontend && npm install && npm run dev  # Terminal 4
 ```
-
----
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/auth/register` | Create user account |
-| POST | `/auth/token` | Login → JWT |
-| POST | `/v1/files/upload` | Upload document (returns `job_id`) |
-| GET | `/v1/jobs/{job_id}` | Poll processing status |
-| POST | `/v1/query` | Ask a question → cited answer |
-| GET | `/v1/query/stream` | Streaming query (SSE) |
-| GET | `/v1/documents/` | List processed documents |
-| GET | `/v1/documents/{job_id}/summary` | AI-generated document summary |
-| POST | `/v1/agent/chat` | Multi-turn document chat |
-| GET | `/v1/admin/usage` | Token + latency stats |
-| GET | `/v1/admin/ragas` | Answer quality trends |
-| GET | `/health` | Service health check |
 
 ---
 
@@ -181,43 +168,31 @@ cd frontend && npm install && npm run dev  # Terminal 4 — Frontend
 | Variable | Description |
 |---|---|
 | `GEMINI_API_KEY` | Google AI Studio API key |
-| `DATABASE_URL` | PostgreSQL: `postgresql://user:pass@host:5432/db` |
-| `REDIS_URL` | Redis: `redis://localhost:6379/0` |
+| `DATABASE_URL` | `postgresql://user:pass@host:5432/db` |
+| `REDIS_URL` | `redis://localhost:6379/0` |
 | `SECRET_KEY` | JWT signing secret (min 32 chars) |
 
-**Optional (with defaults):**
+**Key optional settings:**
 
 | Variable | Default | Description |
 |---|---|---|
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Generation model |
-| `GEMINI_EMBEDDING_MODEL` | `models/gemini-embedding-001` | Embedding model |
 | `RAG_TOP_K` | `8` | Chunks retrieved per query |
 | `CONFIDENCE_THRESHOLD` | `0.35` | Min cosine similarity to answer |
 | `CHUNK_SIZE` | `600` | Parent chunk size (words) |
-| `CHILD_CHUNK_SIZE` | `150` | Child chunk size for embedding |
 
 ---
 
-## Quality Evaluation (RAGAS)
+## API Endpoints
 
-RAGAS metrics are computed asynchronously after every query and stored in `query_history`.
-
-```bash
-# Generate baseline
-python scripts/ragas_baseline.py
-cp /tmp/ragas_baseline.json docs/ragas_baseline.json
-
-# Check for regressions (last 7 days)
-python scripts/ragas_regression_check.py --days 7
-```
-
-**Targets:** Faithfulness ≥ 0.80, Answer Relevancy ≥ 0.70, Context Precision ≥ 0.70
-
----
-
-## Database Schema
-
-- **users** — email, bcrypt password, role (admin/user), active flag
-- **jobs** — filename, type, status (PENDING → COMPLETED/FAILED), processing step, retry count, chunk count
-- **usage_logs** — endpoint, model, token counts, latency per request
-- **query_history** — question, answer, citations, similarity scores, RAGAS scores
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/auth/register` | Create user |
+| POST | `/auth/token` | Login → JWT |
+| POST | `/v1/files/upload` | Upload file (returns `job_id`) |
+| GET | `/v1/jobs/{job_id}` | Poll processing status |
+| POST | `/v1/query` | Ask question → cited answer |
+| GET | `/v1/query/stream` | Streaming query (SSE) |
+| POST | `/v1/agent/chat` | Multi-turn chat |
+| GET | `/v1/admin/ragas` | Quality metrics dashboard |
+| GET | `/health` | Health check |
